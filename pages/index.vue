@@ -4,9 +4,9 @@
   <!-- mapbox + threebox -->
   <!-- <ThreeboxExample /> -->
   <!-- maplibre + threejs -->
-  <!-- <MaplibreThreeExample /> -->
+  <MaplibreThreeExample />
   <!-- maplibre + threebox -->
-  <MaplibreThreeBoxExample />
+  <!-- <MaplibreThreeBoxExample /> -->
 </template>
 <script>
 

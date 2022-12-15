@@ -15,6 +15,13 @@
     </div>
     <div id="hour" class="mapboxgl-map" />
     <input id="time" type="range" min="0" max="86400">
+    <div id="addLabel">
+      <div style="width: 150px; height: 100px; background-color: white; margin-top: -100px">
+        <li>조찬익</li>
+        <li>황인호</li>
+        <li>김동선</li>
+      </div>
+    </div>
   </section>
 </template>
 
@@ -48,7 +55,7 @@ export default {
         origin: [127.12, 37.5, 0], center: [127.12, 37.5, 0], zoom: 17.7, pitch: 76, bearing: -10, scale: { x: 1053, y: 1657.294, z: 1655 }, timezone: 'America/New_York'
       },
       PAR: {
-        origin: [127.12, 37.5, 0], center: [127.12, 37.5, 0], zoom: 15.95, pitch: 76, bearing: 0, scale: { x: 5621.06, y: 6480.4, z: 5621.06 }, timezone: 'Europe/Paris'
+        origin: [127.07969507131938, 37.51141251667616, 0], center: [127.07969507131938, 37.51141251667616, 0], zoom: 15.95, pitch: 76, bearing: 0, scale: { x: 1.06, y: 1.4, z: 1.06 }, timezone: 'Europe/Paris'
       },
       names: {
         customLayer: 'custom-layer',
@@ -61,8 +68,9 @@ export default {
 
     this.map = new maplibregl.Map({
       container: 'map', // container id
-      style: 'https://api.maptiler.com/maps/basic/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL', // style URL
-      center: [127.12, 37.5], // starting position [lng, lat]
+      // style: 'https://api.maptiler.com/maps/basic/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL', // style URL 기본 2D 스타일
+      style: 'https://api.maptiler.com/maps/streets/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL', // 3D 건물 올라와있는 스타일
+      center: [127.07981107766891, 37.51148001366143], // starting position [lng, lat]
       zoom: 18, // starting zoom
       pitch: 60,
       antialias: true // create the gl context with MSAA antialiasing, so custom layers are antialiased
@@ -137,7 +145,7 @@ export default {
           // Creative Commons License attribution: Liberty statue model by https://sketchfab.com/hellolucy2
           // from https://sketchfab.com/3d-models/ellis-island-3cd765a23c5c4c7087acd00624d30590
 
-          const options = {
+          let options = {
             obj: 'eiffel.glb',
             type: 'gltf',
             scale: _this.mapConfig.NYC.scale,
@@ -149,28 +157,32 @@ export default {
           window.tb.loadObj(options, function (model) {
             model.setCoords(_this.mapConfig.NYC.origin)
             model.setRotation({ x: 0, y: 0, z: -147 })
-            model.addTooltip('Statue of Liberty', true)
+            model.addTooltip('석촌동 흉물', true)
             model.castShadow = true
             window.tb.add(model)
           })
 
           // Creative Commons License attribution:  Eiffel Tower model by https://www.cgtrader.com/lefabshop
           // https://www.cgtrader.com/items/108594/download-page
-          // options = {
-          //   obj: 'residential_complex.glb',
-          //   type: 'gltf',
-          //   scale: _this.mapConfig.PAR.scale,
-          //   units: 'meters',
-          //   rotation: { x: 90, y: 0, z: 0 } // default rotation
-          // }
+          options = {
+            obj: 'residential_complex.glb',
+            type: 'gltf',
+            scale: _this.mapConfig.PAR.scale,
+            units: 'meters',
+            rotation: { x: 90, y: 0, z: 0 } // default rotation
+          }
 
-          // window.tb.loadObj(options, function (model) {
-          //   model.setCoords(_this.mapConfig.PAR.origin)
-          //   model.setRotation({ x: 0, y: 0, z: 45.7 })
-          //   model.addTooltip('Eiffel Tower', true)
-          //   model.castShadow = true
-          //   window.tb.add(model)
-          // })
+          window.tb.loadObj(options, function (model) {
+            console.info(model)
+            const test = document.getElementById('addLabel')
+            model.setCoords(_this.mapConfig.PAR.origin)
+            model.setRotation({ x: 0, y: 0, z: 0.7 })
+            // model.addLabel(test, true)
+            model.drawLabelHTML(test)
+            model.addTooltip('그렉터 기숙사 3층', false)
+            model.castShadow = true
+            window.tb.add(model)
+          })
         },
 
         render: function (gl, matrix) {

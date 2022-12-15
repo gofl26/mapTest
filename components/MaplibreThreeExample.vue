@@ -63,7 +63,8 @@ export default {
   mounted () {
     this.map = new maplibregl.Map({
       container: 'map', // container id
-      style: 'https://api.maptiler.com/maps/basic/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL', // style URL
+      // style: 'https://api.maptiler.com/maps/basic/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL', // style URL
+      style: 'https://api.maptiler.com/maps/streets/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL',
       center: [127.12, 37.5], // starting position [lng, lat]
       zoom: 18, // starting zoom
       pitch: 60,
@@ -99,11 +100,12 @@ export default {
         onAdd: function (map, gl) {
           this.camera = new THREE.Camera()
           this.scene = new THREE.Scene()
+          const group = new THREE.Group()
 
           const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 2000)
           camera.position.set(0, 0, 5)
           this.scene.add(camera)
-
+          this.scene.add(group)
           // create two three.js lights to illuminate the model
           const directionalLight = new THREE.DirectionalLight(0xFFFFFF)
           directionalLight.position.set(0, -70, 100).normalize()
@@ -130,9 +132,31 @@ export default {
               // setting.position.y = -150
               // gltf.scene.traverse(function (node) {
               // })
-              this.scene.add(setting)
+              group.add(setting)
             }
           )
+          loader.load(
+            'residential_complex.glb',
+            (gltf) => {
+              const setting = gltf.scene
+              setting.scale.x = 3
+              setting.scale.y = 3
+              setting.scale.z = 3
+              // setting.rotation.y = -2.6
+              setting.position.x = 60
+              // setting.position.y = 40
+              setting.position.z = -60
+              // setting.rotation.x = 300
+              // setting.position.y = -150
+              // gltf.scene.traverse(function (node) {
+              // })
+              group.add(setting)
+            }
+          )
+          const geometry = new THREE.ConeGeometry(5, 20, 32)
+          const material = new THREE.MeshBasicMaterial({ color: 0xFFFF00 })
+          const cone = new THREE.Mesh(geometry, material)
+          group.add(cone)
           this.renderMap = map
           // this.map = map
           // use the Mapbox GL JS map canvas for three.js
