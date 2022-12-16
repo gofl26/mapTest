@@ -4,9 +4,10 @@
   <!-- mapbox + threebox -->
   <!-- <ThreeboxExample /> -->
   <!-- maplibre + threejs -->
-  <MaplibreThreeExample />
+  <!-- <MaplibreThreeExample /> -->
   <!-- maplibre + threebox -->
   <!-- <MaplibreThreeBoxExample /> -->
+  <Groupthreejs />
 </template>
 <script>
 
