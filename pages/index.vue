@@ -7,10 +7,12 @@
   <!-- <MaplibreThreeExample /> -->
   <!-- maplibre + threebox -->
   <!-- <MaplibreThreeBoxExample /> -->
-  <Groupthreejs />
+  <!-- <Groupthreejs /> -->
+  <!-- <AnimationTest /> -->
+  <!-- <OpendoorTest /> -->
+  <FinalTest />
 </template>
 <script>
-
 export default {
   name: 'IndexPage'
 }

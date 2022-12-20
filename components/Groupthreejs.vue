@@ -1,7 +1,12 @@
 <template>
   <div>
     <div id="info">
-      Description
+      <input id="animationStart" v-model="animationStart" type="checkbox">
+      <label for="animationStart">멈춰!</label>
+    </div>
+    <div id="info2">
+      <input id="animationChange" v-model="animationChange" type="checkbox">
+      <label for="animationChange">딴거 해봐!</label>
     </div>
     <!-- <div id="map" class="map" style="width: 100vw; height: 100vh" /> -->
     <canvas id="canvas" style="width: 100vw; height: 100vh" />
@@ -26,7 +31,9 @@ export default {
       cube: null,
       controls: null,
       mixer: null,
-      clock: null
+      clock: null,
+      animationStart: false,
+      animationChange: false
     }
   },
   mounted () {
@@ -62,7 +69,7 @@ export default {
       const loader = new GLTFLoader()
 
       const _this = this
-      loader.load('floppa_rtx_on.glb', function (gltf) {
+      loader.load('exhome_gl1.gltf', function (gltf) {
         console.info(gltf)
         // gltf.scene.children[0].children[0].children[0].children[0].children.forEach((o, index) => {
         //   console.info(o.name, index)
@@ -76,6 +83,9 @@ export default {
         //   _this.renderer.render(_this.scene, _this.camera)
         // })
         const setting = gltf.scene
+        setting.scale.x = 1
+        setting.scale.y = 1
+        setting.scale.z = 1
         _this.scene.add(setting)
         _this.renderer.render(_this.scene, _this.camera)
         setting.traverse((o) => {
@@ -86,9 +96,10 @@ export default {
           }
         })
         /// 애니메이션 효과
+        // let action = null
         _this.mixer = new THREE.AnimationMixer(gltf.scene)
-        const action = _this.mixer.clipAction(gltf.animations[9])
-        action.play()
+        // action = _this.mixer.clipAction(gltf.animations[0])
+        // action.play()
         _this.threeDAnimation()
       })
 
@@ -120,7 +131,7 @@ export default {
 
       floor.receiveShadow = true
 
-      floor.position.y = -1
+      floor.position.y = -0.05
 
       this.scene.add(floor)
       // Add directional Light to scene
@@ -128,7 +139,11 @@ export default {
     },
     threeDAnimation () {
       requestAnimationFrame(this.threeDAnimation)
-      const delta = this.clock.getDelta()
+      /// 멈춰!
+      let delta = null
+      if (this.animationStart) { delta = null } else {
+        delta = this.clock.getDelta()
+      }
       this.mixer.update(delta)
       this.controls.update()
       this.renderer.render(this.scene, this.camera)
@@ -187,4 +202,5 @@ body { margin: 0; padding: 0; }
 
 #info { position: absolute; top: 10px; width: 100%; text-align: center; z-index: 100; background-color: white; display:block; }
 
+#info2 { position: absolute; top: 30px; width: 100%; text-align: center; z-index: 100; background-color: white; display:block; }
 </style>
