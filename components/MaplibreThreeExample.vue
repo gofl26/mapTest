@@ -1,24 +1,26 @@
 <template>
-  <div>
-    <div id="map" class="map" style="width: 100vw; height: 100vh" />
-    asdf
-    <nav class="listing-group">
-      <input id="scrollZoom" v-model="scrollZoom" type="checkbox">
-      <label for="scrollZoom">scroll Zoom</label>
-      <input id="boxZoom" v-model="boxZoom" type="checkbox">
-      <label for="boxZoom">Box zoom</label>
-      <input id="dragRotate" v-model="dragRotate" type="checkbox">
-      <label for="dragRotate">Drag rotate</label>
-      <input id="dragPan" v-model="dragPan" type="checkbox">
-      <label for="dragPan">Drag pan</label>
-      <input id="keyboard" v-model="keyboard" type="checkbox">
-      <label for="keyboard">Keyboard</label>
-      <input id="doubleClickZoom" v-model="doubleClickZoom" type="checkbox">
-      <label for="doubleClickZoom">Double click zoom</label>
-      <input id="touchZoomRotate" v-model="touchZoomRotate" type="checkbox">
-      <label for="touchZoomRotate">Touch zoom rotate</label>
-    </nav>
-  </div>
+  <section>
+    <div>
+      <div id="map" class="map" style="width: 100vw; height: 100vh" />
+      asdf
+      <nav class="listing-group">
+        <input id="scrollZoom" v-model="scrollZoom" type="checkbox">
+        <label for="scrollZoom">scroll Zoom</label>
+        <input id="boxZoom" v-model="boxZoom" type="checkbox">
+        <label for="boxZoom">Box zoom</label>
+        <input id="dragRotate" v-model="dragRotate" type="checkbox">
+        <label for="dragRotate">Drag rotate</label>
+        <input id="dragPan" v-model="dragPan" type="checkbox">
+        <label for="dragPan">Drag pan</label>
+        <input id="keyboard" v-model="keyboard" type="checkbox">
+        <label for="keyboard">Keyboard</label>
+        <input id="doubleClickZoom" v-model="doubleClickZoom" type="checkbox">
+        <label for="doubleClickZoom">Double click zoom</label>
+        <input id="touchZoomRotate" v-model="touchZoomRotate" type="checkbox">
+        <label for="touchZoomRotate">Touch zoom rotate</label>
+      </nav>
+    </div>
+  </section>
 </template>
 
 <script>
@@ -40,7 +42,10 @@ export default {
       doubleClickZoom: true,
       touchZoomRotate: true,
       renderMap: null,
-      map: null
+      map: null,
+      scaleX: 1,
+      scaleY: 1,
+      scaleZ: 1
     }
   },
   watch: {
@@ -66,6 +71,7 @@ export default {
       // style: 'https://api.maptiler.com/maps/basic/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL', // style URL
       style: 'https://api.maptiler.com/maps/streets/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL',
       center: [127.12, 37.5], // starting position [lng, lat]
+      maxZoom: 24,
       zoom: 18, // starting zoom
       pitch: 60,
       antialias: true // create the gl context with MSAA antialiasing, so custom layers are antialiased
@@ -73,6 +79,9 @@ export default {
     this.test()
   },
   methods: {
+    asdff () {
+      console.info('1')
+    },
     test () {
       const modelOrigin = [127.12, 37.5]
       const modelAltitude = 0
@@ -84,6 +93,7 @@ export default {
       )
 
       const modelTransform = {
+
         translateX: modelAsMercatorCoordinate.x,
         translateY: modelAsMercatorCoordinate.y,
         translateZ: modelAsMercatorCoordinate.z,
@@ -92,7 +102,7 @@ export default {
         rotateZ: modelRotate[2],
         scale: modelAsMercatorCoordinate.meterInMercatorCoordinateUnits()
       }
-
+      const _this = this
       const customLayer = {
         id: '3d-model',
         type: 'custom',
@@ -100,12 +110,11 @@ export default {
         onAdd: function (map, gl) {
           this.camera = new THREE.Camera()
           this.scene = new THREE.Scene()
-          const group = new THREE.Group()
 
-          const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 2000)
-          camera.position.set(0, 0, 5)
+          const camera = new THREE.PerspectiveCamera(10, window.innerWidth / window.innerHeight, 0.1, 2000)
+          console.info(camera)
           this.scene.add(camera)
-          this.scene.add(group)
+          // this.scene.add(group)
           // create two three.js lights to illuminate the model
           const directionalLight = new THREE.DirectionalLight(0xFFFFFF)
           directionalLight.position.set(0, -70, 100).normalize()
@@ -117,46 +126,36 @@ export default {
 
           // use the three.js GLTF loader to add the 3D model to the three.js scene
           const loader = new GLTFLoader()
+          // loader.load(
+          //   'eiffel.glb',
+          //   (gltf) => {
+          //     const setting = gltf.scene
+          //     setting.scale.x = 2000
+          //     setting.scale.y = 2000
+          //     setting.scale.z = 2000
+          //     this.scene.add(setting)
+          //   }
+          // )
+
           loader.load(
-            'eiffel.glb',
+            'exhome_gl1.gltf',
             (gltf) => {
+              console.info(_this)
               const setting = gltf.scene
-              setting.scale.x = 2000
-              setting.scale.y = 2000
-              setting.scale.z = 2000
-              // setting.rotation.y = -2.6
-              // setting.position.x = 42
+              setting.scale.x = _this.scaleX
+              setting.scale.y = _this.scaleY
+              setting.scale.z = _this.scaleZ
+              // setting.position.x = 60
               // setting.position.y = 40
-              // setting.position.z = -50
+              // setting.position.z = -60
+              setting.rotation.y = 142
               // setting.rotation.x = 300
-              // setting.position.y = -150
+              // setting.rotation.z = -90
               // gltf.scene.traverse(function (node) {
               // })
-              group.add(setting)
+              this.scene.add(setting)
             }
           )
-          loader.load(
-            'residential_complex.glb',
-            (gltf) => {
-              const setting = gltf.scene
-              setting.scale.x = 3
-              setting.scale.y = 3
-              setting.scale.z = 3
-              // setting.rotation.y = -2.6
-              setting.position.x = 60
-              // setting.position.y = 40
-              setting.position.z = -60
-              // setting.rotation.x = 300
-              // setting.position.y = -150
-              // gltf.scene.traverse(function (node) {
-              // })
-              group.add(setting)
-            }
-          )
-          const geometry = new THREE.ConeGeometry(5, 20, 32)
-          const material = new THREE.MeshBasicMaterial({ color: 0xFFFF00 })
-          const cone = new THREE.Mesh(geometry, material)
-          group.add(cone)
           this.renderMap = map
           // this.map = map
           // use the Mapbox GL JS map canvas for three.js
@@ -211,6 +210,11 @@ export default {
       this.map.on('style.load', () => {
         this.map.addLayer(customLayer)
       })
+      this.map.on('click', '3d-model', function (e) {
+        this.map.flyTo({
+          center: modelOrigin
+        })
+      })
     }
   }
 }
@@ -218,6 +222,18 @@ export default {
 <style>
 body { margin: 0; padding: 0; }
 #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+
+.put-box {
+font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+font-weight: 600;
+position: absolute;
+top: 10px;
+left: 10px;
+z-index: 1;
+border-radius: 3px;
+max-width: 10%;
+color: #fff;
+}
 
 .listing-group {
 font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;

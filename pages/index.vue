@@ -4,13 +4,13 @@
   <!-- mapbox + threebox -->
   <!-- <ThreeboxExample /> -->
   <!-- maplibre + threejs -->
-  <!-- <MaplibreThreeExample /> -->
+  <MaplibreThreeExample />
   <!-- maplibre + threebox -->
   <!-- <MaplibreThreeBoxExample /> -->
   <!-- <Groupthreejs /> -->
   <!-- <AnimationTest /> -->
   <!-- <OpendoorTest /> -->
-  <FinalTest />
+  <!-- <FinalTest /> -->
 </template>
 <script>
 export default {

@@ -21,7 +21,17 @@ export default {
       camera: null,
       controls: null,
       mixer: null,
-      clock: null
+      clock: null,
+      bathAction: null,
+      deadAction: null,
+      drinkAction: null,
+      eatAction: null,
+      glitchAction: null,
+      gosleepAction: null,
+      idleAction: null,
+      sitAction: null,
+      sleepAction: null,
+      walkAction: null
     }
   },
   mounted () {
@@ -90,10 +100,20 @@ export default {
         // _this.createPanel()
 
         /// 애니메이션 효과
-        _this.mixer = new THREE.AnimationMixer(gltf.scene)
         const animations = gltf.animations
-        const action = _this.mixer.clipAction(animations[9])
-        action.play()
+        _this.mixer = new THREE.AnimationMixer(gltf.scene)
+
+        _this.bathAction = _this.mixer.clipAction(animations[0])
+        _this.deadAction = _this.mixer.clipAction(animations[1])
+        _this.drinkAction = _this.mixer.clipAction(animations[2])
+        _this.eatAction = _this.mixer.clipAction(animations[3])
+        _this.glitchAction = _this.mixer.clipAction(animations[4])
+        _this.gosleepAction = _this.mixer.clipAction(animations[5])
+        _this.idleAction = _this.mixer.clipAction(animations[6])
+        _this.sitAction = _this.mixer.clipAction(animations[7])
+        _this.sleepAction = _this.mixer.clipAction(animations[8])
+        _this.walkAction = _this.mixer.clipAction(animations[9])
+
         // _this.activateAllActions()
         _this.threeDAnimation()
       })
