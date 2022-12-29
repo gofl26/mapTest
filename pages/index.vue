@@ -4,12 +4,14 @@
   <!-- mapbox + threebox -->
   <!-- <ThreeboxExample /> -->
   <!-- maplibre + threejs -->
-  <MaplibreThreeExample />
+  <!-- <MaplibreThreeExample /> -->
   <!-- maplibre + threebox -->
   <!-- <MaplibreThreeBoxExample /> -->
   <!-- <Groupthreejs /> -->
   <!-- <AnimationTest /> -->
+  <!-- <MapObjectMoving /> -->
   <!-- <OpendoorTest /> -->
+  <ObjectMoving />
   <!-- <FinalTest /> -->
 </template>
 <script>

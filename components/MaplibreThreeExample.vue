@@ -18,6 +18,9 @@
         <label for="doubleClickZoom">Double click zoom</label>
         <input id="touchZoomRotate" v-model="touchZoomRotate" type="checkbox">
         <label for="touchZoomRotate">Touch zoom rotate</label>
+        <button @click="fly">
+          날아라
+        </button>
       </nav>
     </div>
   </section>
@@ -43,9 +46,9 @@ export default {
       touchZoomRotate: true,
       renderMap: null,
       map: null,
-      scaleX: 1,
-      scaleY: 1,
-      scaleZ: 1
+      scaleX: 3,
+      scaleY: 3,
+      scaleZ: 3
     }
   },
   watch: {
@@ -112,17 +115,17 @@ export default {
           this.scene = new THREE.Scene()
 
           const camera = new THREE.PerspectiveCamera(10, window.innerWidth / window.innerHeight, 0.1, 2000)
-          console.info(camera)
-          this.scene.add(camera)
-          // this.scene.add(group)
-          // create two three.js lights to illuminate the model
-          const directionalLight = new THREE.DirectionalLight(0xFFFFFF)
-          directionalLight.position.set(0, -70, 100).normalize()
-          this.scene.add(directionalLight)
 
-          const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF)
-          directionalLight2.position.set(0, 70, 100).normalize()
-          this.scene.add(directionalLight2)
+          this.scene.add(camera)
+          const hemiLight = new THREE.HemisphereLight(0xFFFFFF, 0xFFFFFF, 1)
+          hemiLight.position.set(0, 50, 0)
+          this.scene.add(hemiLight)
+          // this.scene.add(group)
+          const dirLight = new THREE.DirectionalLight(0xFFFFFF, 0.54)
+          dirLight.position.set(-8, 12, 8)
+          dirLight.castShadow = true
+          dirLight.shadow.mapSize = new THREE.Vector2(1024, 1024)
+          this.scene.add(dirLight)
 
           // use the three.js GLTF loader to add the 3D model to the three.js scene
           const loader = new GLTFLoader()
@@ -207,14 +210,19 @@ export default {
           // this.map.triggerRepaint()
         }
       }
-      this.map.on('style.load', () => {
+      this.map.on('load', () => {
         this.map.addLayer(customLayer)
       })
-      this.map.on('click', '3d-model', function (e) {
-        this.map.flyTo({
-          center: modelOrigin
-        })
-      })
+    },
+    fly () {
+      // this.map.zoomTo(19, { duration: 9000 }) /// 현재 시점에서 줌인
+      this.map.flyTo({
+        bearing: 90,
+        center: [127.12, 37.5],
+        zoom: 23,
+        pitch: 85
+      })// 해당 위경도로 날아가기
+      this.scrollZoom = false
     }
   }
 }

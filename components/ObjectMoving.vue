@@ -3,12 +3,12 @@
     <div id="container" />
   </section>
 </template>
-
 <script>
 import * as THREE from 'three'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+// import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js'
+import { DragControls } from 'three/examples/jsm/controls/DragControls.js'
 // import Stats from 'three/examples/jsm/libs/stats.module.js'
 // import maplibregl from 'maplibre-gl'
 // import 'mapbox-gl/dist/mapbox-gl.css'
@@ -21,12 +21,18 @@ export default {
       camera: null,
       renderer: null,
       controls: null,
+      dragControls: null,
       mixer: null,
       clock: null,
+      group: null,
       openAction: null,
       closeAction: null,
       actions: null,
       settings: null,
+      mouse: null,
+      raycaster: null,
+      enableSelection: null,
+      objects: [],
       crossFadeControls: []
     }
   },
@@ -37,11 +43,16 @@ export default {
     init () {
       // 3d모델을 띄울 div 선택
       const container = document.getElementById('container')
+      document.body.appendChild(container)
       this.clock = new THREE.Clock()
 
       // 카메라 세팅
       this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000)
-      this.camera.position.set(0, 0, 10)
+      this.camera.position.set(0, 0, 1000)
+
+      // 마우스 세팅
+      this.mouse = new THREE.Vector2()
+      this.raycaster = new THREE.Raycaster()
 
       // 씬 세팅
       this.scene = new THREE.Scene()
@@ -66,52 +77,33 @@ export default {
       mesh.receiveShadow = true
       this.scene.add(mesh)
 
-      // 3D 모델 추가
-      const loader = new GLTFLoader()
-      const _this = this
-      loader.load('animated_old_door.glb', function (gltf) {
-        console.info(gltf)
-        const setting = gltf.scene
-        // 스케일 주기
-        setting.scale.x = 0.01
-        setting.scale.y = 0.01
-        setting.scale.z = 0.01
+      this.group = new THREE.Group()
+      this.scene.add(this.group)
 
-        // 회전 주기
-        // setting.rotation.x = -2.6
+      const geometry = new THREE.BoxGeometry(40, 40, 40)
+      this.objects = []
+      for (let i = 0; i < 200; i++) {
+        const object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color: Math.random() * 0xFFFFFF }))
 
-        // 위치 주기
-        // setting.position.x = 42
+        object.position.x = Math.random() * 1000 - 500
+        object.position.y = Math.random() * 600 - 300
+        object.position.z = Math.random() * 800 - 400
 
-        // 그림자 효과 주기
-        setting.traverse((o) => {
-          if (o.isMesh) {
-            o.castShadow = true
-            o.receiveShadow = true
-          }
-        })
-        _this.scene.add(setting)
+        object.rotation.x = Math.random() * 2 * Math.PI
+        object.rotation.y = Math.random() * 2 * Math.PI
+        object.rotation.z = Math.random() * 2 * Math.PI
 
-        // 패널 생성
-        _this.createPanel()
+        object.scale.x = Math.random() * 2 + 1
+        object.scale.y = Math.random() * 2 + 1
+        object.scale.z = Math.random() * 2 + 1
 
-        /// 애니메이션 효과
-        _this.mixer = new THREE.AnimationMixer(gltf.scene)
-        const animations = gltf.animations
-        const openAnimation = animations[0]
+        object.castShadow = true
+        object.receiveShadow = true
 
-        // closeAni.duration = 2.4
-        console.info(openAnimation)
-        _this.openAction = _this.mixer.clipAction(openAnimation).setLoop(THREE.LoopOnce)
-        _this.openAction.time = 0
-        _this.openAction.clampWhenFinished = true
+        this.scene.add(object)
 
-        console.info(_this.openAction)
-        _this.actions = [_this.openAction]
-
-        _this.activateAllActions()
-        _this.threeDAnimation()
-      })
+        this.objects.push(object)
+      }
 
       // render 작업
       this.renderer = new THREE.WebGLRenderer({ antialias: true })
@@ -121,6 +113,20 @@ export default {
       this.renderer.shadowMap.enabled = true
       container.appendChild(this.renderer.domElement)
 
+      this.dragControls = new DragControls([...this.objects], this.camera, this.renderer.domElement)
+      this.dragControls.addEventListener('drag', () => {
+        // if (this.controls.enabled) { this.controls.enabled = false }
+        // console.info(this.controls.enabled)
+        this.renderer.render(this.scene, this.camera)
+      })
+
+      window.addEventListener('resize', this.onWindowResize)
+      document.addEventListener('click', this.onClick)
+      document.addEventListener('keydown', this.onKeyDown)
+      document.addEventListener('keyup', this.onKeyUp)
+      document.addEventListener('mouseup', this.onMouseUp)
+      this.renderer.render(this.scene, this.camera)
+
       // 옵저빙 세팅
       this.controls = new OrbitControls(this.camera, this.renderer.domElement)
       this.controls.update()
@@ -129,6 +135,61 @@ export default {
       // this.stats = new Stats()
       // container.appendChild(this.stats.dom)
     },
+    onWindowResize () {
+      this.camera.aspect = window.innerWidth / window.innerHeight
+      this.camera.updateProjectionMatrix()
+
+      this.renderer.setSize(window.innerWidth, window.innerHeight)
+
+      this.renderer.render(this.scene, this.camera)
+    },
+    onMouseUp () {
+      this.controls.enabled = true
+      this.controls.update()
+      this.renderer.render(this.scene, this.camera)
+    },
+    onKeyUp () {
+      this.enableSelection = false
+    },
+    onKeyDown (event) {
+      this.enableSelection = (event.keyCode === 16)
+    },
+    onClick (event) {
+      event.preventDefault()
+      if (this.enableSelection === true) {
+        const draggableObjects = this.dragControls.getObjects()
+        draggableObjects.length = 0
+
+        this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1
+        this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
+
+        this.raycaster.setFromCamera(this.mouse, this.camera)
+
+        const intersections = this.raycaster.intersectObjects(this.objects, true)
+
+        if (intersections.length > 0) {
+          const object = intersections[0].object
+
+          if (this.group.children.includes(object) === true) {
+            object.material.emissive.set(0x000000)
+            this.scene.attach(object)
+          } else {
+            object.material.emissive.set(0xAAAAAA)
+            this.group.attach(object)
+          }
+
+          this.dragControls.transformGroup = true
+          draggableObjects.push(this.group)
+        }
+
+        if (this.group.children.length === 0) {
+          this.dragControls.transformGroup = false
+          draggableObjects.push(...this.objects)
+        }
+      }
+      this.renderer.render(this.scene, this.camera)
+    },
+
     threeDAnimation () {
       // Render loop
       requestAnimationFrame(this.threeDAnimation)
@@ -141,18 +202,8 @@ export default {
       // this.updateCrossFadeControls()
 
       // 시간 설정
-      const mixerUpdateDelta = this.clock.getDelta()
-      this.mixer.update(mixerUpdateDelta)
-      this.controls.update()
+      // this.controls.update()
       this.renderer.render(this.scene, this.camera)
-    },
-    activateAllActions () {
-      // this.setWeight(this.openAction, this.settings['modify idle weight'])
-
-      this.actions.forEach(function (action) {
-        console.info(action)
-        action.play()
-      })
     },
     createPanel () {
       const panel = new GUI({ width: 310 })
