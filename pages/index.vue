@@ -11,12 +11,16 @@
   <!-- <AnimationTest /> -->
   <!-- <MapObjectMoving /> -->
   <!-- <OpendoorTest /> -->
-  <ObjectMoving />
+  <!-- <ObjectMoving /> -->
   <!-- <FinalTest /> -->
+  <!-- <BabylonTest /> -->
+  <MaplibreBabylon />
 </template>
 <script>
+
 export default {
   name: 'IndexPage'
+
 }
 </script>
 
