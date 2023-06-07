@@ -68,8 +68,8 @@ export default {
 
     this.map = new maplibregl.Map({
       container: 'map', // container id
-      // style: 'https://api.maptiler.com/maps/basic/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL', // style URL 기본 2D 스타일
-      style: 'https://api.maptiler.com/maps/streets/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL', // 3D 건물 올라와있는 스타일
+      style: 'https://api.maptiler.com/maps/basic/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL', // style URL 기본 2D 스타일
+      // style: 'https://api.maptiler.com/maps/streets/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL', // 3D 건물 올라와있는 스타일
       center: [127.07981107766891, 37.51148001366143], // starting position [lng, lat]
       zoom: 18, // starting zoom
       pitch: 60,
@@ -86,7 +86,6 @@ export default {
         trackUserLocation: true
       })
     )
-    console.info(this.map)
 
     // we can add Threebox to mapbox to add built-in mouseover/mouseout and click behaviors
     window.tb = new Threebox(
@@ -99,7 +98,6 @@ export default {
         enableTooltips: true // change this to false to disable default tooltips on fill-extrusion and 3D models
       }
     )
-    console.info('1')
     let time = this.date.getHours() * 60 * 60 + this.date.getMinutes() * 60 + this.date.getSeconds()
     const timeInput = document.getElementById('time')
 
@@ -190,6 +188,12 @@ export default {
           // _this.hour.innerHTML = 'Local date/time: ' + _this.dateToTimezone(_this.date, point.timezone).toLocaleTimeString()
           window.tb.update()
         }
+      })
+      _this.map.on('click', (e) => {
+        let intersects = []
+        intersects = this.tb.queryRenderedFeatures(e.point)
+        const nearestObject = Threebox.prototype.findParent3DObject(intersects[0])
+        console.info(nearestObject)
       })
     })
   },

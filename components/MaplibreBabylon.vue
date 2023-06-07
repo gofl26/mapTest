@@ -4,6 +4,7 @@
       <div id="map" class="map" style="width: 100vw; height: 100vh" />
       asdf
     </div>
+    <pre id="info" />
   </section>
 </template>
 
@@ -11,31 +12,37 @@
 import * as BABYLON from 'babylonjs'
 import 'babylonjs-loaders'
 import maplibregl from 'maplibre-gl'
-
+// import * as THREE from 'three'
 export default {
   name: 'NuxtTutorial',
   data: function () {
     return {
       map: null,
       modelMatrix: null,
-      target: null
+      target: null,
+      selectMesh: null,
+      meshes: [],
+      a: null
     }
   },
   mounted () {
     this.map = new maplibregl.Map({
       container: 'map', // container id
       // style: 'https://api.maptiler.com/maps/basic/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL', // style URL
-      style: 'https://api.maptiler.com/maps/streets/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL',
+      style: 'https://api.maptiler.com/maps/streets/style.json?key=chtNHUeC692DJrDzNDcv',
       center: [127.12, 37.5], // starting position [lng, lat]
       maxZoom: 24,
       zoom: 18, // starting zoom
-      pitch: 60,
-      antialias: true // create the gl context with MSAA antialiasing, so custom layers are antialiased
+      pitch: 60
+      // accessToken: 'pk.eyJ1IjoiZ29mbDI2IiwiYSI6ImNsZnEzbWNxdDBna2kzeGxmODhiNWVyaTkifQ.RtwKGiSvqC4IRLv7-OevFA'
+      // antialias: true // create the gl context with MSAA antialiasing, so custom layers are antialiased
     })
+
     this.test()
   },
   methods: {
     test () {
+      const map = this.map
       const modelOrigin = [127.12, 37.5]
       const modelAltitude = 0 // 위로 띄우기
       const modelRotate = [Math.PI / 2, 0, 0]
@@ -54,187 +61,113 @@ export default {
         rotateZ: modelRotate[2],
         scale: modelAsMercatorCoordinate.meterInMercatorCoordinateUnits()
       }
-      const _this = this
       const modelMatrix = BABYLON.Matrix.Compose(
         new BABYLON.Vector3(modelTransform.scale, modelTransform.scale, modelTransform.scale),
         BABYLON.Quaternion.FromEulerAngles(modelRotate[0], modelRotate[1], modelRotate[2]),
         new BABYLON.Vector3(modelAsMercatorCoordinate.x, modelAsMercatorCoordinate.y, modelAsMercatorCoordinate.z)
       )
+      let engine = null
+      let scene = null
+      let camera = null
+      const thismeshes = this.meshes
       const customLayer = {
         id: '3d-model',
         type: 'custom',
         renderingMode: '3d',
         onAdd: async function (map, gl) {
           this.map = map
-          const engine = new BABYLON.Engine(gl, true, {
+          engine = new BABYLON.Engine(gl, true, {
             useHighPrecisionMatrix: true
           }, true)
-          this.scene = new BABYLON.Scene(engine)
-          this.scene.autoClear = false
-          this.scene.detachControl()
-          this.scene.beforeRender = function () {
+          scene = new BABYLON.Scene(engine)
+          scene.autoClear = false
+          scene.detachControl()
+          scene.beforeRender = function () {
             engine.wipeCaches(true)
           }
-          this.camera = new BABYLON.Camera('mapbox-camera', new BABYLON.Vector3(), this.scene)
-          const light = new BABYLON.HemisphericLight('mapbox-light', BABYLON.Vector3.One(), this.scene)
+
+          camera = new BABYLON.Camera('mapbox-camera', new BABYLON.Vector3(), scene)
+          const light = new BABYLON.HemisphericLight('mapbox-light', BABYLON.Vector3.One(), scene)
           light.setEnabled(true)
 
-          const { meshes, animationGroups } = await BABYLON.SceneLoader.ImportMeshAsync('', './aaaa/', 'Soldier.glb', this.scene)
-          // meshes[0].position = new BABYLON.Vector3(-20, 0, 0)
-          meshes[0].scaling = new BABYLON.Vector3(30, 30, 30)
-          meshes[0].rotation = new BABYLON.Vector3(0, 4, 0)
-
-          // mesh merge 안하고 해보기 merge 하면 애니메이션이 파괴되는 듯하다.
-          console.info(this.scene)
+          const { meshes } = await BABYLON.SceneLoader.ImportMeshAsync('', './aaaa/', 'cctvlight.glb', scene)
           console.info(meshes)
-          const model = this.scene.getMeshByName('__root__')
-
-          const animWalk = new BABYLON.Animation('walkAnimation', 'position', 30, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE)
-          const animRun = new BABYLON.Animation('runAnimation', 'position', 30, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE)
-          const walkKeys = []
-          const runKeys = []
-          walkKeys.push({
-            frame: 0,
-            value: new BABYLON.Vector3(0, 0, 0)
-          })
-
-          walkKeys.push({
-            frame: 120,
-            value: new BABYLON.Vector3(100, 0, 100)
-          })
-
-          runKeys.push({
-            frame: 0,
-            value: new BABYLON.Vector3(0, 0, 0)
-          })
-
-          runKeys.push({
-            frame: 40,
-            value: new BABYLON.Vector3(100, 0, 100)
-          })
-
-          animWalk.setKeys(walkKeys)
-          animRun.setKeys(runKeys)
-          model.animations = []
-          model.animations.push(animWalk)
-          model.animations.push(animRun)
-
-          // 3D 모델 움직이기, 애니메이션 X, mesh merge 하는 로직
-          // meshes.shift()
-
-          // const target = BABYLON.Mesh.MergeMeshes(meshes, true, true, undefined, false, true)
-
-          // const rotateFrames = []
-          // const slideFrames = []
-          // // const fadeFrames = []
-
-          // const fps = 60
-
-          // const rotateAnim = new BABYLON.Animation('rotateAnim', 'rotation.z', fps, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE)
-          // const slideAnim = new BABYLON.Animation('slideAnim', 'position', fps, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE)
-          // // const fadeAnim = new BABYLON.Animation('fadeAnim', 'visibility', fps, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT)
-
-          // rotateFrames.push({ frame: 0, value: 0 })
-          // rotateFrames.push({ frame: 180, value: Math.PI / 2 })
-
-          // slideFrames.push({ frame: 0, value: new BABYLON.Vector3(0, 30, 0) })
-          // slideFrames.push({ frame: 45, value: new BABYLON.Vector3(-30, 20, 0) })
-          // slideFrames.push({ frame: 90, value: new BABYLON.Vector3(0, 30, 0) })
-          // slideFrames.push({ frame: 135, value: new BABYLON.Vector3(30, 20, 0) })
-          // slideFrames.push({ frame: 180, value: new BABYLON.Vector3(0, 30, 0) })
-
-          // // fadeFrames.push({ frame: 0, value: 1 })
-          // // fadeFrames.push({ frame: 180, value: 0 })
-
-          // rotateAnim.setKeys(rotateFrames)
-          // slideAnim.setKeys(slideFrames)
-          // // fadeAnim.setKeys(fadeFrames)
-
-          // target.animations.push(rotateAnim)
-          // target.animations.push(slideAnim)
-          // // target.animations.push(fadeAnim)
-
-          // const animControl = this.scene.beginDirectAnimation(target, [slideAnim], 0, 180, true, 1, () => {
-          //   console.info('animation ended')
-          //   target.setEnabled(false)
-          // })
-
-          const button1 = document.createElement('button')
-          button1.style.top = '100px'
-          button1.style.right = '30px'
-          button1.textContent = '걷기'
-          button1.style.width = '100px'
-          button1.style.height = '100px'
-
-          button1.setAttribute = ('id', 'but')
-          button1.style.position = 'absolute'
-          button1.style.color = 'black'
-
-          document.body.appendChild(button1)
-
-          button1.addEventListener('click', () => { // 밑에 주석 실행하려면 async 붙이기
-            // await this.scene.beginDirectAnimation(target, [rotateAnim], 0, 180).waitAsync()
-            // animControl.stop()
-
-            // this.scene.beginAnimation(model, 0, 150, true)
-            this.scene.beginDirectAnimation(model, [animWalk], 0, 120, true)
-            animationGroups[3].play(true)
-            animationGroups[1].pause()
-            animationGroups[0].pause()
-          })
-
-          const button2 = document.createElement('button')
-          button2.style.top = '200px'
-          button2.style.right = '30px'
-          button2.textContent = '뛰기'
-          button2.style.width = '100px'
-          button2.style.height = '100px'
-
-          button2.setAttribute = ('id', 'but')
-          button2.style.position = 'absolute'
-          button2.style.color = 'black'
-
-          document.body.appendChild(button2)
-
-          button2.addEventListener('click', () => {
-            this.scene.beginDirectAnimation(model, [animRun], 0, 40, true)
-            animationGroups[1].play(true)
-            animationGroups[3].pause()
-            animationGroups[0].pause()
-          })
-
-          const button3 = document.createElement('button')
-          button3.style.top = '300px'
-          button3.style.right = '30px'
-          button3.textContent = '멈춰'
-          button3.style.width = '100px'
-          button3.style.height = '100px'
-
-          button3.setAttribute = ('id', 'but')
-          button3.style.position = 'absolute'
-          button3.style.color = 'black'
-
-          document.body.appendChild(button3)
-
-          button3.addEventListener('click', () => {
-            this.scene.stopAllAnimations()
-            animationGroups[0].play(true)
-            animationGroups[3].pause()
-            animationGroups[1].pause()
-          })
+          meshes[0].scaling = new BABYLON.Vector3(1, 1, 1)
+          meshes[0].position = new BABYLON.Vector3(0, 10, 0)
+          for (let i = 0; i < meshes.length; i++) {
+            meshes[i].metadata = {
+              id: 'cctv'
+            }
+          }
+          console.info(meshes)
+          thismeshes.push(meshes)
         },
         render: function (gl, matrix) {
           const cameraMatrix = BABYLON.Matrix.FromArray(matrix)
 
           const mvpMatrix = modelMatrix.multiply(cameraMatrix)
-          this.camera.freezeProjectionMatrix(mvpMatrix)
+          camera.freezeProjectionMatrix(mvpMatrix)
 
-          this.scene.render(false)
+          scene.render(false)
           this.map.triggerRepaint()
         }
       }
-      this.map.on('style.load', function () {
-        _this.map.addLayer(customLayer)
+      map.on('style.load', function () {
+        map.addLayer(customLayer)
+      })
+      map.on('click', (e) => {
+        const pixelCoords = e.point
+
+        // Babylon.js의 Raycasting 기능을 사용하여 클릭된 매쉬를 찾음
+        const pickInfo = scene.pick(pixelCoords.x, pixelCoords.y)
+
+        // pickInfo가 null이 아니면 클릭된 매쉬가 있으므로 처리 가능
+        if (pickInfo && pickInfo.hit && pickInfo.pickedMesh) {
+          if (this.selectMesh) {
+            console.info('1')
+            thismeshes[0][2].material = this.a
+          } else {
+            // 클릭된 매쉬 처리
+            const clickedMesh = pickInfo.pickedMesh
+            console.info(clickedMesh)
+
+            if (clickedMesh?.metadata?.id === 'cctv') {
+              const yellowMat = new BABYLON.StandardMaterial('yellowMat')
+              yellowMat.emissiveColor = new BABYLON.Color4(1, 0, 0)
+              console.info(this.a)
+              if (!this.a) {
+                console.info(this.a)
+                this.a = thismeshes[0][2].material
+              }
+              thismeshes[0][2].material = yellowMat
+            }
+            this.selectMesh = thismeshes
+          }
+          // 모든 자식 메시에 대한 전체 경계 상자 계산
+          // let minPoint = new BABYLON.Vector3(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY)
+          // let maxPoint = new BABYLON.Vector3(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY)
+          // const boundingInfo = clickedMesh.getBoundingInfo()
+          // minPoint = BABYLON.Vector3.Minimize(minPoint, boundingInfo.boundingBox.minimumWorld)
+          // maxPoint = BABYLON.Vector3.Maximize(maxPoint, boundingInfo.boundingBox.maximumWorld)
+
+          // // x, y, z 크기 계산
+          // const sizeX = maxPoint.x - minPoint.x
+          // const sizeY = maxPoint.y - minPoint.y
+          // const sizeZ = maxPoint.z - minPoint.z
+          // // 크기가 sizeX, sizeY, sizeZ인 새로운 블록 생성
+          // const newBlock = BABYLON.MeshBuilder.CreateBox('block', { width: sizeX, height: sizeY, depth: sizeZ, updatable: true }, scene)
+          // console.info(sizeY)
+          // // 새 블록의 위치 설정
+          // newBlock.position = clickedMesh.getAbsolutePosition()
+          // newBlock.position._y = sizeY / 2
+
+          // // 새 블록에 투명 재질 적용
+          // const material = new BABYLON.StandardMaterial('blockMaterial', scene)
+          // // material.diffuseColor = new BABYLON.Color3(1, 0, 0)
+          // material.alpha = 0.1 // 투명하게 설정
+          // newBlock.material = material
+          // this.selectMesh = newBlock
+        }
       })
     }
 
@@ -244,17 +177,37 @@ export default {
 <style>
 body { margin: 0; padding: 0; }
 #map { position: absolute; top: 0; bottom: 0; width: 100%; }
-
-.put-box {
-font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
-font-weight: 600;
-position: absolute;
-top: 10px;
-left: 10px;
-z-index: 1;
+#info {
+display: block;
+position: relative;
+margin: 0px auto;
+width: 50%;
+padding: 10px;
+border: none;
 border-radius: 3px;
-max-width: 10%;
-color: #fff;
+font-size: 12px;
+text-align: center;
+color: #222;
+background: #fff;
+}
+.mapboxgl-popup {
+  max-width: 300px;
+  font-family: 'Arial', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: #ffffff;
 }
 
+.mapboxgl-popup h3 {
+  margin: 0 0 10px;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.mapboxgl-popup p {
+  margin: 0;
+}
 </style>

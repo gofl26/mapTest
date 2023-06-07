@@ -14,7 +14,16 @@
   <!-- <ObjectMoving /> -->
   <!-- <FinalTest /> -->
   <!-- <BabylonTest /> -->
-  <MaplibreBabylon />
+  <!-- <BabylonMap /> -->
+  <!-- <MaplibreBabylon /> -->
+  <!-- <MaplibreBabylonMove /> -->
+  <!-- <BabylonVideo /> -->
+  <!-- <BabylonYoutube /> -->
+  <!-- <MaplibreBabylonYoutube /> -->
+  <!-- <MaplibreObjectControl /> -->
+  <!-- <MaplibreDeckBabylon /> -->
+  <!-- <BabylonFbx /> -->
+  <Maplibre />
 </template>
 <script>
 

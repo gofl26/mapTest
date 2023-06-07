@@ -27,7 +27,7 @@ export default {
     })
   },
   methods: {
-    async createScene () {
+    createScene () {
       const scene = new BABYLON.Scene(this.engine)
       scene.clearColor = new BABYLON.Color3.Black()
       const alpha = Math.PI / 4
@@ -40,11 +40,43 @@ export default {
 
       const light = new BABYLON.HemisphericLight('light', new BABYLON.Vector3(1, 1, 0))
       light.setEnabled(true)
-
-      const result = await BABYLON.SceneLoader.ImportMeshAsync('', './aaaa/', 'Soldier.glb', scene)
+      const redBox = BABYLON.Mesh.CreateBox('red', 20, scene)
+      const redMat = new BABYLON.StandardMaterial('ground', scene)
+      redMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4)
+      redMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4)
+      redMat.emissiveColor = BABYLON.Color3.Red()
+      redBox.material = redMat
+      redBox.position.x -= 100
+      const result = BABYLON.SceneLoader.ImportMeshAsync('', './aaaa/', 'Soldier.glb', scene).then(function (result) {
+        const mesh = result.meshes[0]
+        mesh.actionManager = new BABYLON.ActionManager(scene)
+        mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(
+          BABYLON.ActionManager.OnPickTrigger,
+          function () {
+            console.log('Clicked mesh')
+          }
+        ))
+      })
+      scene.onPointerDown = function (evt, pickResult) {
+        if (pickResult.hit) {
+        // 클릭한 메시 처리
+          console.log('Clicked mesh:', pickResult.pickedMesh)
+        }
+      }
+      console.info(result)
       this.importResult = result
       BABYLON.Mesh.CreateGround('ground1', 6, 6, 2, scene)
+      redBox.isPickable = true
 
+      redBox.actionManager = new BABYLON.ActionManager(this.scene)
+      redBox.actionManager.registerAction(
+        new BABYLON.ExecuteCodeAction(
+          BABYLON.ActionManager.OnLeftPickTrigger, // 왼쪽 마우스 버튼 클릭 시
+          function (event) {
+            console.info('Clicked!', event)
+          }
+        )
+      )
       // GUI
       const button1 = document.createElement('button')
       button1.style.top = '100px'
